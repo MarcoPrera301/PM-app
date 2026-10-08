@@ -1,5 +1,6 @@
 package plat.lab1.composelab4.lab7.screens
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,21 +21,25 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
-import plat.lab1.composelab4.lab7.CharacterDb
+import plat.lab1.composelab4.lab7.common.ErrorView
+import plat.lab1.composelab4.lab7.common.LoadingView
+import plat.lab1.composelab4.lab7.viewmodels.CharacterDetailViewModel
 
 
 // pantalla character details
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CharacterDetailScreen(characterId: Int, onBackClick: () -> Unit) {
-    val characterDb = remember { CharacterDb() }
-    val character = remember(characterId) { characterDb.getCharacterById(characterId) }
+fun CharacterDetailScreen(viewModel: CharacterDetailViewModel = viewModel(), onBackClick: () -> Unit) {
+
+    val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -56,30 +61,44 @@ fun CharacterDetailScreen(characterId: Int, onBackClick: () -> Unit) {
             )
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            AsyncImage(
-                model = character.image,
-                contentDescription = character.name,
-                modifier = Modifier
-                    .size(180.dp)
-                    .clip(CircleShape)
-            )
+        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+            when {
+                uiState.hasError -> {
+                    ErrorView(
+                        message = "Error al obtener personaje.\nIntenta de nuevo",
+                        onRetryClick = { viewModel.loadCharacter() }
+                    )
+                }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                uiState.isLoading -> {
+                    LoadingView(onClick = { viewModel.onLoadingClicked() })
+                }
 
-            Text(text = character.name, style = MaterialTheme.typography.headlineSmall)
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            DetailRow(label = "Species:", value = character.species)
-            DetailRow(label = "Status:", value = character.status)
-            DetailRow(label = "Gender:", value = character.gender)
+                else -> {
+                    val character = uiState.data
+                    if (character != null) {
+                        Column(
+                            modifier = Modifier.fillMaxSize().padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            AsyncImage(
+                                model = character.image,
+                                contentDescription = character.name,
+                                modifier = Modifier.size(180.dp).clip(CircleShape)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = character.name,
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                            Spacer(modifier = Modifier.height(24.dp))
+                            DetailRow(label = "Species:", value = character.species)
+                            DetailRow(label = "Status:", value = character.status)
+                            DetailRow(label = "Gender:", value = character.gender)
+                        }
+                    }
+                }
+            }
         }
     }
 }

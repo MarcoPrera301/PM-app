@@ -1,7 +1,9 @@
 package plat.lab1.composelab4.lab7.screens
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,17 +15,21 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import plat.lab1.composelab4.lab7.common.ErrorView
+import plat.lab1.composelab4.lab7.common.LoadingView
 import plat.lab1.composelab4.lab7.data.Location
-import plat.lab1.composelab4.lab7.data.LocationDb
+import plat.lab1.composelab4.lab7.viewmodels.LocationsListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LocationsScreen(onLocationClick: (Int) -> Unit) {
-    val locationDb = remember { LocationDb() }
-    val locations = remember { locationDb.getAllLocations() }
+fun LocationsScreen(onLocationClick: (Int) -> Unit,viewModel: LocationsListViewModel = viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -36,12 +42,28 @@ fun LocationsScreen(onLocationClick: (Int) -> Unit) {
             )
         }
     ) { innerPadding ->
-        LazyColumn(modifier = Modifier.padding(innerPadding)) {
-            items(locations) { location ->
-                LocationRow(
-                    location = location,
-                    onClick = { onLocationClick(location.id) }
-                )
+        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+            when {
+                uiState.hasError -> {
+                    ErrorView(
+                        message = "Error al obtener listado de ubicaciones.\nIntenta de nuevo",
+                        onRetryClick = { viewModel.loadLocations() }
+                    )
+                }
+                uiState.isLoading -> {
+                    LoadingView(onClick = { viewModel.onLoadingClicked() })
+                }
+                else -> {
+                    val locations = uiState.data.orEmpty()
+                    LazyColumn {
+                        items(locations) { location ->
+                            LocationRow(
+                                location = location,
+                                onClick = { onLocationClick(location.id) }
+                            )
+                        }
+                    }
+                }
             }
         }
     }

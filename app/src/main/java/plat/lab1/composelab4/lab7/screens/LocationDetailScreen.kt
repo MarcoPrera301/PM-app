@@ -1,5 +1,6 @@
 package plat.lab1.composelab4.lab7.screens
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,17 +19,22 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import plat.lab1.composelab4.lab7.data.LocationDb
+import androidx.lifecycle.viewmodel.compose.viewModel
+import plat.lab1.composelab4.lab7.common.ErrorView
+import plat.lab1.composelab4.lab7.common.LoadingView
+import plat.lab1.composelab4.lab7.viewmodels.LocationDetailViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LocationDetailScreen(locationId: Int, onBackClick: () -> Unit) {
-    val locationDb = remember { LocationDb() }
-    val location = remember(locationId) { locationDb.getLocationById(locationId) }
+fun LocationDetailScreen(onBackClick: () -> Unit, viewModel: LocationDetailViewModel = viewModel()
+) {
+
+    val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -50,16 +56,39 @@ fun LocationDetailScreen(locationId: Int, onBackClick: () -> Unit) {
             )
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(innerPadding).padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = location.name, style = MaterialTheme.typography.headlineSmall)
-            Spacer(modifier = Modifier.height(24.dp))
-            DetailRow(label = "ID:", value = location.id.toString())
-            DetailRow(label = "Type:", value = location.type)
-            DetailRow(label = "Dimensions:", value = location.dimension)
+        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+            when {
+                uiState.hasError -> {
+                    ErrorView(
+                        message = "Error al obtener ubicación.\nIntenta de nuevo",
+                        onRetryClick = { viewModel.loadLocation() }
+                    )
+                }
+
+                uiState.isLoading -> {
+                    LoadingView(onClick = { viewModel.onLoadingClicked() })
+                }
+
+                else -> {
+                    val location = uiState.data
+                    if (location != null) {
+                        Column(
+                            modifier = Modifier.fillMaxSize().padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = location.name,
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                            Spacer(modifier = Modifier.height(24.dp))
+                            DetailRow(label = "ID:", value = location.id.toString())
+                            DetailRow(label = "Type:", value = location.type)
+                            DetailRow(label = "Dimensions:", value = location.dimension)
+                        }
+                    }
+                }
+            }
         }
     }
 }

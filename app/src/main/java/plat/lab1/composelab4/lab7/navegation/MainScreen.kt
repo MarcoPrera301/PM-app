@@ -54,10 +54,8 @@ fun MainScreen(onLogout: () -> Unit) {
                         }
                     )
                 }
-                composable<CharacterDetailDestination> { backStackEntry ->
-                    val destination: CharacterDetailDestination = backStackEntry.toRoute()
+                composable<CharacterDetailDestination> {
                     CharacterDetailScreen(
-                        characterId = destination.id,
                         onBackClick = { innerNavController.popBackStack() }
                     )
                 }
@@ -72,10 +70,8 @@ fun MainScreen(onLogout: () -> Unit) {
                         }
                     )
                 }
-                composable<LocationDetailDestination> { backStackEntry ->
-                    val destination: LocationDetailDestination = backStackEntry.toRoute()
+                composable<LocationDetailDestination> {
                     LocationDetailScreen(
-                        locationId = destination.id,
                         onBackClick = { innerNavController.popBackStack() }
                     )
                 }
