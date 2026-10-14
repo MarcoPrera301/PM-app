@@ -13,8 +13,11 @@ import plat.lab1.composelab4.lab7.navigation.MainDestination
 import plat.lab1.composelab4.lab7.navigation.MainScreen
 import plat.lab1.composelab4.lab7.screens.LoginScreen
 import plat.lab1.composelab4.lab7.ui.theme.RickMortyTheme
+import plat.lab1.composelab4.lab7.navigation.SplashDestination
+import plat.lab1.composelab4.lab7.screens.SplashScreen
 
 class MainActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -23,12 +26,28 @@ class MainActivity : ComponentActivity() {
 
                 NavHost(
                     navController = navController,
-                    startDestination = LoginDestination,
+                    startDestination = SplashDestination,
                     modifier = Modifier.fillMaxSize()
                 ) {
+
+                    composable<SplashDestination> {
+                        SplashScreen(
+                            onLogged = {
+                                navController.navigate(MainDestination) {
+                                    popUpTo(SplashDestination) { inclusive = true }
+                                }
+                            },
+                            onNotLogged = {
+                                navController.navigate(LoginDestination) {
+                                    popUpTo(SplashDestination) { inclusive = true }
+                                }
+                            }
+                        )
+                    }
+
                     composable<LoginDestination> {
                         LoginScreen(
-                            onEmpezarClick = {
+                            onLoginSuccess = {
                                 navController.navigate(MainDestination) {
                                     popUpTo(LoginDestination) { inclusive = true }
                                 }

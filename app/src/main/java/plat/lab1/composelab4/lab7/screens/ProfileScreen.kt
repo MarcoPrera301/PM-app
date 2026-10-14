@@ -22,10 +22,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
+import plat.lab1.composelab4.lab7.viewmodels.ProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(onLogoutClick: () -> Unit) {
+fun ProfileScreen(
+    onLogoutClick: () -> Unit,
+    viewModel: ProfileViewModel = viewModel()
+) {
+    val name by viewModel.name.collectAsState()
     Scaffold(
         topBar = {
             TopAppBar(
@@ -52,12 +60,12 @@ fun ProfileScreen(onLogoutClick: () -> Unit) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            ProfileRow(label = "Nombre:", value = "Marco Esteban Prera Roca")
+            ProfileRow(label = "Nombre:", value = name)
             ProfileRow(label = "Carné:", value = "25468")
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            Button(onClick = onLogoutClick) {
+            Button(onClick = { viewModel.logout(onLogoutClick) }) {
                 Text("Cerrar sesión")
             }
         }

@@ -7,6 +7,8 @@ import kotlinx.serialization.Serializable
 data object LoginDestination
 
 @Serializable
+data object SplashDestination
+@Serializable
 data object MainDestination
 
 // graph de Characters

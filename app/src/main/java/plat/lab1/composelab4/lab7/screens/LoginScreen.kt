@@ -18,9 +18,21 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import plat.lab1.composelab4.lab7.R
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewmodel.compose.viewModel
+import plat.lab1.composelab4.lab7.viewmodels.LoginViewModel
+
 
 @Composable
-fun LoginScreen(onEmpezarClick: () -> Unit) {
+fun LoginScreen(
+    onLoginSuccess: () -> Unit,
+    viewModel: LoginViewModel = viewModel()
+) {
+    var name by remember { mutableStateOf("") }
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -39,8 +51,22 @@ fun LoginScreen(onEmpezarClick: () -> Unit) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Button(onClick = onEmpezarClick) {
-                Text("Entrar")
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Nombre") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { viewModel.login(name, onLoginSuccess) },
+                enabled = name.isNotBlank(),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Iniciar sesión")
             }
 
             Spacer(modifier = Modifier.weight(1f))
