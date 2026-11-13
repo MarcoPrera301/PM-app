@@ -9,10 +9,19 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import plat.lab1.composelab4.lab7.data.UserPreferences
+import plat.lab1.composelab4.lab7.data.local.AppDatabase
+import plat.lab1.composelab4.lab7.data.repository.LocalDataRepository
+import plat.lab1.composelab4.lab7.data.repository.SyncRepository
 
 class ProfileViewModel(application: Application) : AndroidViewModel(application) {
 
     private val userPreferences = UserPreferences(application)
+    private val database = AppDatabase.getInstance(application)
+    private val localDataRepository = LocalDataRepository(
+        characterDao = database.characterDao(),
+        locationDao = database.locationDao()
+    )
+
 
     val name: StateFlow<String> = userPreferences.name
         .map { it ?: "" }
@@ -25,6 +34,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     fun logout(onLoggedOut: () -> Unit) {
         viewModelScope.launch {
             userPreferences.clearName()
+            localDataRepository.clearAll()
             onLoggedOut()
         }
     }

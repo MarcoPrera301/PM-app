@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -19,6 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import plat.lab1.composelab4.lab7.R
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +35,9 @@ fun LoginScreen(
     viewModel: LoginViewModel = viewModel()
 ) {
     var name by remember { mutableStateOf("") }
+    val isLoading by viewModel.isLoading.collectAsState()
+    val hasError by viewModel.hasError.collectAsState()
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -56,6 +61,7 @@ fun LoginScreen(
                 onValueChange = { name = it },
                 label = { Text("Nombre") },
                 singleLine = true,
+                enabled = !isLoading,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -63,10 +69,26 @@ fun LoginScreen(
 
             Button(
                 onClick = { viewModel.login(name, onLoginSuccess) },
-                enabled = name.isNotBlank(),
+                enabled = name.isNotBlank() && !isLoading,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Iniciar sesión")
+            }
+
+            if (isLoading) {
+                Spacer(modifier = Modifier.height(24.dp))
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = "Sincronizando datos...", style = MaterialTheme.typography.bodyMedium)
+            }
+            if (hasError) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "No se pudo obtener la información. Revisa tu conexión a internet e intenta de nuevo.",
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
 
             Spacer(modifier = Modifier.weight(1f))

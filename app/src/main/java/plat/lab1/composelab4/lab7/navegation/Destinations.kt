@@ -20,6 +20,8 @@ data object CharactersListDestination
 
 @Serializable
 data class CharacterDetailDestination(val id: Int)
+@Serializable
+data class CharacterFormDestination(val id: Int = 0)   // 0 = crear, otro valor = editar ese id
 
 // graph de Locations
 @Serializable

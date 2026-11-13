@@ -24,8 +24,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
 import plat.lab1.composelab4.lab7.screens.CharacterDetailScreen
+import plat.lab1.composelab4.lab7.screens.CharacterFormScreen
 import plat.lab1.composelab4.lab7.screens.CharactersScreen
 import plat.lab1.composelab4.lab7.screens.LocationDetailScreen
 import plat.lab1.composelab4.lab7.screens.LocationsScreen
@@ -51,12 +51,24 @@ fun MainScreen(onLogout: () -> Unit) {
                     CharactersScreen(
                         onCharacterClick = { characterId ->
                             innerNavController.navigate(CharacterDetailDestination(id = characterId))
+                        },
+                        onAddClick = {
+                            innerNavController.navigate(CharacterFormDestination())
                         }
                     )
                 }
                 composable<CharacterDetailDestination> {
                     CharacterDetailScreen(
-                        onBackClick = { innerNavController.popBackStack() }
+                        onBackClick = { innerNavController.popBackStack() },
+                        onEditClick = { characterId ->
+                            innerNavController.navigate(CharacterFormDestination(id = characterId))
+                        }
+                    )
+                }
+                composable<CharacterFormDestination> {
+                    CharacterFormScreen(
+                        onBackClick = { innerNavController.popBackStack() },
+                        onSaved = { innerNavController.popBackStack() }
                     )
                 }
             }

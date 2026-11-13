@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,6 +37,7 @@ fun LocationDetailScreen(onBackClick: () -> Unit, viewModel: LocationDetailViewM
 ) {
 
     val uiState by viewModel.uiState.collectAsState()
+    val location = uiState.data
 
     Scaffold(
         topBar = {
@@ -48,10 +51,21 @@ fun LocationDetailScreen(onBackClick: () -> Unit, viewModel: LocationDetailViewM
                         )
                     }
                 },
+                actions = {
+                    if (location != null) {
+                        IconButton(onClick = { viewModel.toggleFavorite() }) {
+                            Icon(
+                                imageVector = if (location.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                                contentDescription = "Marcar como favorita"
+                            )
+                        }
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
         }

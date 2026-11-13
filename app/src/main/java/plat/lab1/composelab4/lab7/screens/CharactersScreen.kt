@@ -3,6 +3,7 @@ package plat.lab1.composelab4.lab7.screens
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +14,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -31,6 +41,8 @@ import coil3.compose.AsyncImage
 import plat.lab1.composelab4.lab7.common.ErrorView
 import plat.lab1.composelab4.lab7.common.LoadingView
 import plat.lab1.composelab4.lab7.Character
+import plat.lab1.composelab4.lab7.common.CharacterAvatar
+import plat.lab1.composelab4.lab7.common.EmptyView
 import plat.lab1.composelab4.lab7.viewmodels.CharactersListViewModel
 
 
@@ -40,19 +52,39 @@ import plat.lab1.composelab4.lab7.viewmodels.CharactersListViewModel
 @Composable
 fun CharactersScreen(
     onCharacterClick: (Int) -> Unit,
-    viewModel: CharactersListViewModel = viewModel()
+    viewModel: CharactersListViewModel = viewModel(),
+    onAddClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val showOnlyFavorites by viewModel.showOnlyFavorites.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Characters") },
+                actions = {
+                    IconButton(onClick = { viewModel.toggleFavoritesFilter() }) {
+                        Icon(
+                            imageVector = if (showOnlyFavorites) Icons.Filled.Star else Icons.Filled.StarBorder,
+                            contentDescription = "Filtrar favoritos"
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onAddClick,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
+                Icon(imageVector = Icons.Filled.Add, contentDescription = "Agregar personaje")
+            }
         }
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
@@ -68,12 +100,23 @@ fun CharactersScreen(
                 }
                 else -> {
                     val characters = uiState.data.orEmpty()
-                    LazyColumn {
-                        items(characters) { character ->
-                            CharacterRow(
-                                character = character,
-                                onClick = { onCharacterClick(character.id) }
-                            )
+                    val visible = if (showOnlyFavorites) {
+                        characters.filter { it.isFavorite }
+                    } else {
+                        characters
+                    }
+
+                    if (visible.isEmpty()) {
+                        EmptyView(message = "No hay elementos a mostrar")
+                    } else {
+                        LazyColumn(contentPadding = PaddingValues(bottom = 88.dp)) {
+                            items(visible, key = { it.id }) { character ->
+                                CharacterRow(
+                                    character = character,
+                                    onClick = { onCharacterClick(character.id) },
+                                    onFavoriteClick = { viewModel.toggleFavorite(character) }
+                                )
+                            }
                         }
                     }
                 }
@@ -83,7 +126,7 @@ fun CharactersScreen(
 }
 
 @Composable
-private fun CharacterRow(character: Character, onClick: () -> Unit) {
+private fun CharacterRow(character: Character, onClick: () -> Unit,onFavoriteClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -91,20 +134,25 @@ private fun CharacterRow(character: Character, onClick: () -> Unit) {
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        AsyncImage(
-            model = character.image,
+        CharacterAvatar(
+            imageUrl = character.image,
             contentDescription = character.name,
-            modifier = Modifier
-                .size(56.dp)
-                .clip(CircleShape)
+            modifier = Modifier.size(56.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))
-        Column {
+        Column(modifier = Modifier.weight(1f)){
             Text(text = character.name, style = MaterialTheme.typography.titleMedium)
             Text(
                 text = "${character.species} - ${character.status}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        IconButton(onClick = onFavoriteClick) {
+            Icon(
+                imageVector = if (character.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                contentDescription = "Marcar como favorito",
+                tint = MaterialTheme.colorScheme.primary
             )
         }
     }
